@@ -5,13 +5,16 @@ local ADDON_NAME, private = ...
 private.API_MAJOR, private.API_MINOR = 8, 0
 
 local xpac, major, minor = _G.strsplit(".", _G.GetBuildInfo())
-private.is730 = tonumber(xpac) == 7 and (tonumber(major) >= 3 and tonumber(minor) >= 0)
+private.isPatch = tonumber(xpac) == 7 and (tonumber(major) >= 3 and tonumber(minor) >= 5)
 
-private.host = ADDON_NAME
 private.disabled = {
-    tooltips = false,
+    bags = false,
     fonts = false,
+    tooltips = false,
+    mainmenubar = false,
 }
+
+private.uiScale = 1
 
 local classLocale, class, classID = _G.UnitClass("player")
 private.charClass = {
@@ -20,6 +23,7 @@ private.charClass = {
     id = classID,
 }
 
+private.disableUIScale = true
 function private.nop() end
 local debug do
     if _G.LibStub then
@@ -43,7 +47,7 @@ local debug do
             debugger:AddLine(text)
         end
     else
-        debug = function() end
+        debug = private.nop
     end
     private.debug = debug
 end
@@ -62,6 +66,8 @@ do -- private.CreateAPI
                     end
                     return ret
                 end)
+            else
+                _G.rawset(table, key, value)
             end
         end
     }
@@ -81,66 +87,76 @@ end
 
 local Aurora = {
     Base = private.CreateAPI({}),
+    Scale = private.CreateAPI({}),
     Hook = private.CreateAPI({}),
     Skin = private.CreateAPI({}),
 }
 private.Aurora = Aurora
 _G.Aurora = Aurora
 
-
 local eventFrame = _G.CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
+eventFrame:RegisterEvent("UI_SCALE_CHANGED")
 eventFrame:SetScript("OnEvent", function(self, event, addonName)
-    if addonName == private.host then
-        -- Setup function for the host addon
-        if private.host ~= ADDON_NAME then
-            _G[private.OnLoad](private)
-        else
-            private.OnLoad()
-        end
-
-        if _G.AuroraConfig then
-            Aurora[2].buttonsHaveGradient = _G.AuroraConfig.buttonsHaveGradient
-        end
-
-        -- Skin FrameXML
-        for i = 1, #private.FrameXML do
-            local file, isShared = _G.strsplit(".", private.FrameXML[i])
-            local fileList = private.FrameXML
-            if isShared then
-                file = isShared
-                fileList = private.SharedXML
-            end
-            if fileList[file] then
-                fileList[file]()
-            end
-        end
-
-        -- Skin prior loaded AddOns
-        for addon, func in _G.next, private.AddOns do
-            local loaded = _G.IsAddOnLoaded(addon)
-            if loaded then
-                func()
-            end
-        end
-
-        private.isLoaded = true
+    if event == "UI_SCALE_CHANGED" then
+        private.UpdateUIScale()
     else
-        -- Skin AddOn
-        local addonModule = private.AddOns[addonName]
-        if addonModule then
-            addonModule()
-        end
-    end
+        if addonName == ADDON_NAME then
+            -- Disable UI scaling until we finish rewriting the skins
+            if private.disableUIScale then
+                private.uiScale = nil
+                function Aurora.Scale.Value(value)
+                    return value
+                end
+            end
 
-    -- Load deprected themes
-    local addonModule = Aurora[2].themes[addonName]
-    if addonModule then
-        if _G.type(addonModule) == "function" then
-            addonModule()
+            -- Setup function for the host addon
+            private.OnLoad()
+            private.UpdateUIScale()
+
+            if _G.AuroraConfig then
+                Aurora[2].buttonsHaveGradient = _G.AuroraConfig.buttonsHaveGradient
+            end
+
+            -- Skin FrameXML
+            for i = 1, #private.FrameXML do
+                local file, isShared = _G.strsplit(".", private.FrameXML[i])
+                local fileList = private.FrameXML
+                if isShared then
+                    file = isShared
+                    fileList = private.SharedXML
+                end
+                if fileList[file] then
+                    fileList[file]()
+                end
+            end
+
+            -- Skin prior loaded AddOns
+            for addon, func in _G.next, private.AddOns do
+                local loaded = _G.IsAddOnLoaded(addon)
+                if loaded then
+                    func()
+                end
+            end
+
+            private.isLoaded = true
         else
-            for _, moduleFunc in _G.next, addonModule do
-                moduleFunc()
+            -- Skin AddOn
+            local addonModule = private.AddOns[addonName]
+            if addonModule then
+                addonModule()
+            end
+        end
+
+        -- Load deprected themes
+        local addonModule = Aurora[2].themes[addonName]
+        if addonModule then
+            if _G.type(addonModule) == "function" then
+                addonModule()
+            else
+                for _, moduleFunc in _G.next, addonModule do
+                    moduleFunc()
+                end
             end
         end
     end

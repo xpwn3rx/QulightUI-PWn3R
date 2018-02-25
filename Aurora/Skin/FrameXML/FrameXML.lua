@@ -13,6 +13,9 @@ local FrameXML = {
     "SharedXML.Vector2D",
     "SharedXML.Vector3D",
     "SharedXML.Spline",
+    "SharedXML.LayoutFrame",
+    "SharedXML.ManagedLayoutFrame",
+    "SharedXML.BulletPoint",
     "MixinUtil",
 
     -- intrinsics
@@ -69,7 +72,6 @@ local FrameXML = {
     "OptionsFrameTemplates",
     "OptionsPanelTemplates",
     "UIOptions",
-    "QulightUI",
     "VideoOptionsFrame",
     "SharedXML.VideoOptionsPanels",
     "MacOptionsPanel",
@@ -213,7 +215,7 @@ local FrameXML = {
     "ArtifactToasts",
     "SharedXML.ModelPreviewFrame",
     "SplashFrame",
-    "SharedXML.LayoutFrame",
+    "QuestChoiceFrameMixin",
 
     -- Save off whatever we need available unmodified.
     "SecureCapsule",
@@ -233,7 +235,8 @@ local _, private = ...
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
+local Base, Scale = Aurora.Base, Aurora.Scale
+local Hook, Skin = Aurora.Hook, Aurora.Skin
 
 do --[[ FrameXML\File.lua ]]
 end

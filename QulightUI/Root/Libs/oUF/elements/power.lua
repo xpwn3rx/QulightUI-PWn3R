@@ -277,7 +277,7 @@ local Enable = function(self, unit)
 		if(power:IsObjectType'StatusBar' and not power:GetStatusBarTexture()) then
 			power:SetStatusBarTexture[[Interface\TargetingFrame\UI-StatusBar]]
 		end
-
+		power:Show()
 		return true
 	end
 end
@@ -285,6 +285,7 @@ end
 local Disable = function(self)
 	local power = self.Power
 	if(power) then
+		power:Hide()
 		self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
 		self:UnregisterEvent('UNIT_POWER', Path)
 		self:UnregisterEvent('UNIT_POWER_BAR_SHOW', Path)

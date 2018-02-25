@@ -7,7 +7,8 @@ local next, tinsert = _G.next, _G.tinsert
 local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 
-do -- ExpandOrCollapse - BlizzWTF: Not a template, but it should be
+do -- BlizzWTF: These are not templates, but they should be
+    -- ExpandOrCollapse
     local function Hook_SetNormalTexture(self, texture)
         if self.settingTexture then return end
         self.settingTexture = true
@@ -25,7 +26,6 @@ do -- ExpandOrCollapse - BlizzWTF: Not a template, but it should be
         end
         self.settingTexture = nil
     end
-
     function Skin.ExpandOrCollapse(button)
         button:SetHighlightTexture("")
         button:SetPushedTexture("")
@@ -52,11 +52,47 @@ do -- ExpandOrCollapse - BlizzWTF: Not a template, but it should be
         Base.SetHighlight(button, "color")
         _G.hooksecurefunc(button, "SetNormalTexture", Hook_SetNormalTexture)
     end
+
+    -- Nav buttons
+    local function NavButton(button)
+        button:SetSize(18, 18)
+        button:SetNormalTexture("")
+        button:SetPushedTexture("")
+        button:SetHighlightTexture("")
+
+        local disabled = button:GetDisabledTexture()
+        disabled:SetColorTexture(0, 0, 0, .3)
+        disabled:SetDrawLayer("OVERLAY")
+
+        Base.SetBackdrop(button, Aurora.buttonColor:GetRGBA())
+    end
+    function Skin.NavButtonPrevious(button)
+        NavButton(button)
+
+        local arrow = button:CreateTexture(nil, "ARTWORK")
+        arrow:SetPoint("TOPLEFT", 6, -4)
+        arrow:SetPoint("BOTTOMRIGHT", -7, 5)
+        Base.SetTexture(arrow, "arrowLeft")
+
+        button._auroraHighlight = {arrow}
+        Base.SetHighlight(button, "texture")
+    end
+    function Skin.NavButtonNext(button)
+        NavButton(button)
+
+        local arrow = button:CreateTexture(nil, "ARTWORK")
+        arrow:SetPoint("TOPLEFT", 7, -5)
+        arrow:SetPoint("BOTTOMRIGHT", -6, 4)
+        Base.SetTexture(arrow, "arrowRight")
+
+        button._auroraHighlight = {arrow}
+        Base.SetHighlight(button, "texture")
+    end
 end
 
 do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
     function Hook.PanelTemplates_TabResize(tab, padding, absoluteSize, minWidth, maxWidth, absoluteTextSize)
-        if not tab.auroraTabResize then return end
+        if not tab._auroraTabResize then return end
         local sideWidths = 14
         local tabText = tab.Text or _G[tab:GetName().."Text"]
 
@@ -130,23 +166,13 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
         Base.SetBackdrop(button, Aurora.buttonColor:GetRGBA())
 
-        button._auroraHighlight = {}
-        local lineOfs = 4
-        for i = 1, 2 do
-            local line = button:CreateLine()
-            line:SetColorTexture(1, 1, 1)
-            line:SetThickness(0.7)
-            if i == 1 then
-                line:SetStartPoint("TOPLEFT", lineOfs, -lineOfs)
-                line:SetEndPoint("BOTTOMRIGHT", -lineOfs, lineOfs)
-            else
-                line:SetStartPoint("TOPRIGHT", -lineOfs, -lineOfs)
-                line:SetEndPoint("BOTTOMLEFT", lineOfs, lineOfs)
-            end
-            _G.tinsert(button._auroraHighlight, line)
-        end
+        local cross = button:CreateTexture(nil, "ARTWORK")
+        cross:SetPoint("TOPLEFT", 4, -4)
+        cross:SetPoint("BOTTOMRIGHT", -4, 4)
+        Base.SetTexture(cross, "lineCross")
 
-        Base.SetHighlight(button, "color")
+        button._auroraHighlight = {cross}
+        Base.SetHighlight(button, "texture")
     end
     function Skin.UIPanelButtonTemplate(button)
         button.Left:SetAlpha(0)
@@ -156,6 +182,9 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
         Base.SetBackdrop(button, Aurora.buttonColor:GetRGBA())
         Base.SetHighlight(button, "backdrop")
+
+        --[[ Scale ]]--
+        button:SetSize(button:GetSize())
     end
     function Skin.PortraitFrameTemplate(frame, noCloseButton)
         local name = frame:GetName()
@@ -224,6 +253,30 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
         frame.Background:Hide()
         Base.SetBackdrop(frame)
+    end
+
+    function Skin.UIMenuButtonStretchTemplate(button)
+        button:SetSize(button:GetSize())
+
+        button.TopLeft:Hide()
+        button.TopRight:Hide()
+        button.BottomLeft:Hide()
+        button.BottomRight:Hide()
+        button.TopMiddle:Hide()
+        button.MiddleLeft:Hide()
+        button.MiddleRight:Hide()
+        button.BottomMiddle:Hide()
+        button.MiddleMiddle:Hide()
+        button:SetHighlightTexture("")
+
+        local bd = _G.CreateFrame("Frame", nil, button)
+        bd:SetPoint("TOPLEFT", 1, -1)
+        bd:SetPoint("BOTTOMRIGHT", -1, 1)
+        bd:SetFrameLevel(button:GetFrameLevel())
+        Base.SetBackdrop(bd, Aurora.frameColor:GetRGBA())
+
+        button._auroraBDFrame = bd
+        Base.SetHighlight(button, "backdrop")
     end
 
     function Skin.UIPanelScrollBarButton(button)
@@ -304,8 +357,8 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         editbox.Middle:Hide()
 
         local bg = _G.CreateFrame("Frame", nil, editbox)
-        bg:SetPoint("TOPLEFT", -2, -7)
-        bg:SetPoint("BOTTOMRIGHT", 0, 7)
+        bg:SetPoint("TOPLEFT", editbox.Left)
+        bg:SetPoint("BOTTOMRIGHT", editbox.Right)
         bg:SetFrameLevel(editbox:GetFrameLevel() - 1)
         Base.SetBackdrop(bg, Aurora.frameColor:GetRGBA())
     end

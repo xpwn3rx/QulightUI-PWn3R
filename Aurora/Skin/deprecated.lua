@@ -14,9 +14,9 @@ C.media = {
     ["arrowDown"] = [[Interface\AddOns\Aurora\media\arrow-down-active]],
     ["arrowLeft"] = [[Interface\AddOns\Aurora\media\arrow-left-active]],
     ["arrowRight"] = [[Interface\AddOns\Aurora\media\arrow-right-active]],
-    ["backdrop"] = Qulight["media"].texture,
+    ["backdrop"] = [[Interface\ChatFrame\ChatFrameBackground]],
     ["checked"] = [[Interface\AddOns\Aurora\media\CheckButtonHilight]],
-    ["font"] = [=[Interface\Addons\QulightUI\Root\Media\qFont.ttf]=],
+    ["font"] = [[Interface\AddOns\Aurora\media\font.ttf]],
     ["gradient"] = [[Interface\AddOns\Aurora\media\gradient]],
     ["roleIcons"] = [[Interface\AddOns\Aurora\media\UI-LFG-ICON-ROLES]],
 }
@@ -455,11 +455,11 @@ end
 F.ReskinFilterButton = function(f, direction)
     F.ReskinStretchButton(f)
 
-    direction = direction or "Right"
-    Base.SetTexture(f.Icon, "arrow"..direction)
-
     f.Icon:SetPoint("RIGHT", -7, 0)
     f.Icon:SetSize(4, 8)
+
+    direction = direction or "Right"
+    Base.SetTexture(f.Icon, "arrow"..direction)
 end
 
 F.ReskinNavBar = function(f)

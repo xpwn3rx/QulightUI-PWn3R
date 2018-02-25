@@ -247,8 +247,21 @@ function Stuffing:UpdateCooldowns(b)
 	end
 end
 
-function CreateReagentContainer()
+local function StripTextures(object, text)
+	for i = 1, object:GetNumRegions() do
+		local region = select(i, object:GetRegions())
 
+		if region:GetObjectType() == "Texture" then
+			region:SetTexture(nil)
+		elseif (text) then
+			region:Hide(0)
+			region:SetAlpha(0)
+		end
+	end
+end
+
+function CreateReagentContainer()
+	StripTextures(ReagentBankFrame)
 	local Reagent = CreateFrame("Frame", "StuffingFrameReagent", UIParent)
 	local SwitchBankButton = CreateFrame("Button", nil, Reagent)
 	local SortButton = CreateFrame("Button", nil, Reagent)
@@ -325,7 +338,7 @@ function CreateReagentContainer()
 		ReagentBankFrame:ClearAllPoints()
 		ReagentBankFrame:SetAllPoints()
 		CreateStyle(ReagentBankFrame, 3)
-		
+
 		button:SetNormalTexture("")
 		button.IconBorder:SetAlpha(0)
 		button:SetPushedTexture("")
@@ -363,6 +376,7 @@ function CreateReagentContainer()
 	-- Unlock window
 	CreateStyle(ReagentBankFrameUnlockInfoPurchaseButton, 3)
 	ReagentBankFrameUnlockInfo:SetAllPoints(Reagent)
+	ReagentBankFrameUnlockInfo:SetFrameStrata("FULLSCREEN")
 
 end
 

@@ -246,13 +246,9 @@ if Qulight["general"].autoinvite then
 		for i = 1, select(2, BNGetNumFriends()) do
 			local presenceID, _, _, _, _, _, client, isOnline = BNGetFriendInfo(i)
 			if client == "WoW" and isOnline then
-				if presenceID == nil then
-				break
-				else
-					local _, toonName, _, realmName = BNGetToonInfo(presenceID)
-					if name == toonName or name == toonName.."-"..realmName then
-						return true
-					end
+				local _, toonName, _, realmName = BNGetGameAccountInfo(presenceID)
+				if name == toonName or name == toonName.."-"..realmName then
+					return true
 				end
 			end
 		end
