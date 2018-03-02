@@ -39,31 +39,75 @@ local oUF = ns.oUF
 local GetComboPoints = GetComboPoints
 local MAX_COMBO_POINTS = MAX_COMBO_POINTS
 
-local Update = function(self, event, unit)
+local function Update(self, event, unit)
 	if(unit == 'pet') then return end
 
-	local cpoints = self.CPoints
-	if(cpoints.PreUpdate) then
-		cpoints:PreUpdate()
+	local element = self.CPoints
+
+	--[[ Callback: ClassPower:PreUpdate(event)
+	Called before the element has been updated.
+
+	* self  - the ClassPower element
+	]]
+	if(element.PreUpdate) then
+		element:PreUpdate()
 	end
 
-	local cp
-	if(UnitHasVehicleUI'player') then
-		cp = GetComboPoints('vehicle', 'target')
-	else
-		cp = GetComboPoints('player', 'target')
-	end
-
-	for i=1, MAX_COMBO_POINTS do
-		if(i <= cp) then
-			cpoints[i]:Show()
+	local cur, max, mod, oldMax
+	if(event ~= 'ClassPowerDisable') then
+		if(unit == 'vehicle') then
+			-- BUG: UnitPower always returns 0 combo points for vehicles
+			cur = GetComboPoints(unit)
+			max = MAX_COMBO_POINTS
+			mod = 1
 		else
-			cpoints[i]:Hide()
+			cur = UnitPower('player', ClassPowerID, true)
+			max = UnitPowerMax('player', ClassPowerID)
+			mod = UnitPowerDisplayMod(ClassPowerID)
+		end
+
+		-- mod should never be 0, but according to Blizz code it can actually happen
+		cur = mod == 0 and 0 or cur / mod
+
+		-- BUG: Destruction is supposed to show partial soulshards, but Affliction and Demonology should only show full ones
+		if(ClassPowerType == 'SOUL_SHARDS' and GetSpecialization() ~= SPEC_WARLOCK_DESTRUCTION) then
+			cur = cur - cur % 1
+		end
+
+		local numActive = cur + 0.9
+		for i = 1, max do
+			if(i > numActive) then
+				element[i]:Hide()
+				element[i]:SetValue(0)
+			else
+				element[i]:Show()
+				element[i]:SetValue(cur - i + 1)
+			end
+		end
+
+		oldMax = element.__max
+		if(max ~= oldMax) then
+			if(max < oldMax) then
+				for i = max + 1, oldMax do
+					element[i]:Hide()
+					element[i]:SetValue(0)
+				end
+			end
+
+			element.__max = max
 		end
 	end
+	--[[ Callback: ClassPower:PostUpdate(cur, max, hasMaxChanged, powerType)
+	Called after the element has been updated.
 
-	if(cpoints.PostUpdate) then
-		return cpoints:PostUpdate(cp)
+	* self          - the ClassPower element
+	* cur           - the current amount of power (number)
+	* max           - the maximum amount of power (number)
+	* hasMaxChanged - indicates whether the maximum amount has changed since the last update (boolean)
+	* powerType     - the active power type (string)
+	--]]
+	if(element.PostUpdate) then
+		return element:PostUpdate(cur, max, oldMax ~= max, powerType)
 	end
 end
 
@@ -81,14 +125,15 @@ local Enable = function(self)
 		cpoints.__owner = self
 		cpoints.ForceUpdate = ForceUpdate
 
-		self:RegisterEvent('UNIT_COMBO_POINTS', Path, true)
-		self:RegisterEvent('PLAYER_TARGET_CHANGED', Path, true)
+		self:RegisterEvent('UNIT_POWER_FREQUENT', Path, true)
+		self:RegisterEvent('UNIT_MAXPOWER', Path, true)
 
 		for index = 1, MAX_COMBO_POINTS do
 			local cpoint = cpoints[index]
 			if(cpoint:IsObjectType'Texture' and not cpoint:GetTexture()) then
 				cpoint:SetTexture[[Interface\ComboFrame\ComboPoint]]
 				cpoint:SetTexCoord(0, 0.375, 0, 1)
+				cpoint:SetMinMaxValues(0,1)
 			end
 		end
 
@@ -99,8 +144,9 @@ end
 local Disable = function(self)
 	local cpoints = self.CPoints
 	if(cpoints) then
-		self:UnregisterEvent('UNIT_COMBO_POINTS', Path)
-		self:UnregisterEvent('PLAYER_TARGET_CHANGED', Path)
+		self:UnregisterEvent('PLAYER_TALENT_UPDATE', VisibilityPath)
+		self:UnregisterEvent('UNIT_DISPLAYPOWER', VisibilityPath)
+		self:UnregisterEvent('SPELLS_CHANGED', Visibility)
 	end
 end
 
