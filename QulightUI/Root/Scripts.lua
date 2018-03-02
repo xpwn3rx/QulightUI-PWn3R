@@ -249,7 +249,7 @@ if Qulight["general"].autoinvite then
 				local _, toonName, _, realmName = BNGetGameAccountInfo(presenceID)
 				if realmName and toonName.."-"..realmName then
 					return true
-				elseif name == toonName
+				elseif name == toonName then
 					return true
 				end
 			end
