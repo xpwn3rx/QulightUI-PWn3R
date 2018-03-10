@@ -249,7 +249,7 @@ ForceWarning:SetScript("OnEvent", function(self, event)
 		for i = 1, GetMaxBattlefieldID() do
 			local status = GetBattlefieldStatus(i)
 			if status == "confirm" then
-				PlaySound("PVPTHROUGHQUEUE", "Master")
+				--PlaySound("PVPTHROUGHQUEUE", "Master")
 				break
 			end
 			i = i + 1
