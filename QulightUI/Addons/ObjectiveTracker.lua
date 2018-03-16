@@ -105,7 +105,7 @@ hooksecurefunc(BONUS_OBJECTIVE_TRACKER_MODULE, "AddProgressBar", function(self, 
 		--bar.IconBG:Kill()
 		bar:SetSize(200, 20)
 		bar:SetStatusBarTexture(Qulight["media"].texture)
-		bar:SetTemplate("Transparent")
+		--bar:SetTemplate("Transparent")
 		bar:SetBackdropColor(0, 0, 0, 0)
 
 		label:ClearAllPoints()
@@ -117,7 +117,7 @@ hooksecurefunc(BONUS_OBJECTIVE_TRACKER_MODULE, "AddProgressBar", function(self, 
 
 		local border = CreateFrame("Frame", "$parentBorder", bar)
 		border:SetAllPoints(icon)
-		border:SetTemplate("Transparent")
+		--border:SetTemplate("Transparent")
 		border:SetBackdropColor(0, 0, 0, 0)
 		bar.newIconBg = border
 
